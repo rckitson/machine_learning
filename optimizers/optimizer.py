@@ -7,11 +7,12 @@ https://mmahesh.github.io/articles/2017-07/tutorial-on-sc-adagrad-a-new-stochast
 """
 import numpy as np
 
+
 class Optimizer:
     """ A class for minimizing a function """
 
-    def __init__(self, x0, function, method="sgd", 
-                    error_threshold=1e-4, learning_rate=0.1):
+    def __init__(self, x0, function, method="sgd",
+                 error_threshold=1e-4, learning_rate=0.1):
         """ Constructor 
 
         Args:
@@ -26,7 +27,7 @@ class Optimizer:
         # Hyperparameters needed for some of the algorithms
         self._m = 0
         self._v = 0
-        self._update = np.random.random(len(x0))*1e-3
+        self._update = np.random.random(len(x0)) * 1e-3
 
         if method == 'sgd':
             self.method = lambda x, g, t: self.sgd(x, g, learning_rate)
@@ -39,7 +40,7 @@ class Optimizer:
         elif method == 'adagrad':
             self.method = lambda x, g, t: self.adagrad(x, g, learning_rate)
         elif method == 'adadelta':
-            self.method = lambda x, g, t: self.adagrad(x, g, learning_rate)
+            self.method = lambda x, g, t: self.adadelta(x, g)
         else:
             print("Unknown method")
         print("Using method: " + method)
@@ -56,14 +57,14 @@ class Optimizer:
 
         value0 = value
         timeout = False
-        while (np.linalg.norm(gradient) > self.error_threshold):
+        while np.linalg.norm(gradient) > self.error_threshold:
             count += 1
             value, gradient = self.evaluate_function(next_point)
             next_point = self.method(next_point, gradient, count)
             output_file.write("{} {} {}\n".format(count + 1, value, np.linalg.norm(gradient)))
             if count % 1e3 == 0:
                 print("{} {} {}".format(count, value, np.linalg.norm(gradient)))
-            elif count > 5e4 or value > 10*value0:
+            elif count > 5e4 or value > 10 * value0:
                 timeout = True
                 break
 
@@ -73,7 +74,6 @@ class Optimizer:
         print("x: {}".format(next_point))
         print("f(x): {}".format(value))
         output_file.close()
-        
 
     def evaluate_function(self, x):
         """ Return the function value and gradient 
@@ -89,37 +89,36 @@ class Optimizer:
         delta = 1e-6 * rand / np.linalg.norm(rand)
 
         value = self.function(x)
-        gradient = (self.function(x + delta) - value)/delta
+        gradient = (self.function(x + delta) - value) / delta
         return value, gradient
-    
-            
-    def sgd(self, x, g, learning_rate):
+
+    def sgd(self, x, gradient, learning_rate):
         """ Stochastic gradient descent 
 
         Args:
             x: The current position
-            g: The current gradient at x
+            gradient: The current gradient at x
             learning_rate: The learning rate
 
         Returns:
             The new position
         """
-        self._update = -learning_rate*g
+        self._update = -learning_rate * gradient
         return x + self._update
 
-    def momentum(self, x, g, learning_rate):
-        """ Stochastic gradient descent 
+    def momentum(self, x, gradient, learning_rate):
+        """ Stochastic gradient descent with momentum
 
         Args:
             x: The current position
-            g: The current gradient at x
+            gradient: The current gradient at x
             learning_rate: The learning rate
 
         Returns:
             The new position
         """
         rho = 0.9
-        self._update = rho*self._update - learning_rate*g
+        self._update = rho * self._update - learning_rate * gradient
         return x + self._update
 
     def adam(self, x, gradient, learning_rate, count):
@@ -129,7 +128,7 @@ class Optimizer:
 
         Args:
             x: The current position
-            g: The current gradient at x
+            gradient: The current gradient at x
             learning_rate: The learning rate
             count: The iteration count
 
@@ -141,13 +140,13 @@ class Optimizer:
         eps = 1e-8
         t = count + 1
 
-        self._m  = beta1*self._v + (1 - beta1)*gradient
-        self._v = beta2*self._v + (1 - beta2)*gradient**2
+        self._m = beta1 * self._v + (1 - beta1) * gradient
+        self._v = beta2 * self._v + (1 - beta2) * gradient ** 2
 
-        m_hat = self._m / (1 - beta1**t)
-        v_hat = self._v / (1 - beta2**t)
+        m_hat = self._m / (1 - beta1 ** t)
+        v_hat = self._v / (1 - beta2 ** t)
 
-        self._update = -learning_rate * m_hat / (v_hat**0.5 + eps)
+        self._update = -learning_rate * m_hat / (v_hat ** 0.5 + eps)
         return x + self._update
 
     def rms_prop(self, x, gradient, learning_rate):
@@ -155,7 +154,7 @@ class Optimizer:
 
         Args:
             x: The current position
-            g: The current gradient at x
+            gradient: The current gradient at x
             learning_rate: The learning rate
 
         Returns:
@@ -164,9 +163,9 @@ class Optimizer:
         beta = 0.9
         eps = 1e-8
 
-        self._v = beta * self._v + (1 - beta)*gradient**2
+        self._v = beta * self._v + (1 - beta) * gradient ** 2
 
-        self._update = -learning_rate * gradient / (self._v**0.5 + eps)
+        self._update = -learning_rate * gradient / (self._v ** 0.5 + eps)
         return x + self._update
 
     def adagrad(self, x, gradient, learning_rate):
@@ -174,7 +173,7 @@ class Optimizer:
 
         Args:
             x: The current position
-            g: The current gradient at x
+            gradient: The current gradient at x
             learning_rate: The learning rate
 
         Returns:
@@ -184,20 +183,19 @@ class Optimizer:
         # Let rho be in [0,1] for momentum
         rho = 0.0
 
-        self._v = self._v + gradient**2
+        self._v = self._v + gradient ** 2
 
-        self._update = rho*self._update + -learning_rate * gradient / (self._v**0.5 + eps)
+        self._update = rho * self._update + -learning_rate * gradient / (self._v ** 0.5 + eps)
         return x + self._update
 
-    def adadelta(self, x, gradient, learning_rate):
+    def adadelta(self, x, gradient):
         """ The ADADELTA algorithm
 
         https://arxiv.org/pdf/1212.5701.pdf
 
         Args:
             x: The current position
-            g: The current gradient at x
-            learning_rate: The learning rate
+            gradient: The current gradient at x
 
         Returns:
             The new position
@@ -206,11 +204,12 @@ class Optimizer:
         eps = 1e-8
         rho = 0.95
 
-        self._m = rho*self._m + (1 - rho) * gradient**2
+        self._m = rho * self._m + (1 - rho) * gradient ** 2
         self._update = -rms(self._update) / (rms(gradient) + eps) * gradient
-        self._v = rho*self._v + (1 - rho) * self._update**2
+        self._v = rho * self._v + (1 - rho) * self._update ** 2
 
         return x + self._update
+
 
 def rms(x):
     """ Root mean square 
@@ -218,4 +217,4 @@ def rms(x):
     Args:
         x: numpy array
     """
-    return np.linalg.norm(x)/np.sqrt(len(x))
+    return np.linalg.norm(x) / np.sqrt(len(x))
