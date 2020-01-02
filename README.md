@@ -1,5 +1,4 @@
-# Ryan C Kitson
-kitson.r at gmail dot com
+# Machine Learning Sandbox
 
 ## Description
 This is a repo that I created to demonstrate my coding capability.
