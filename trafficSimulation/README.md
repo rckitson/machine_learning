@@ -14,4 +14,5 @@ from a typical linear spring to a cubic spring that heavily penalizes the cars f
 or too close to each other. Some tweaking was required on the 'stiffness' and 'damping' coefficients
 to create a useful result.
 
+![Traffic simulation](traffic_1.png)
 [See the video](traffic.mp4)

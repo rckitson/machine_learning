@@ -32,8 +32,8 @@ class Car:
 
         displacement = (self.ahead.position - self.position)
         velocity_diff = (self.ahead.velocity - self.velocity)
-        # Model driving as a cubic spring and a linear damper
-        force = self.aggression * (displacement + displacement ** 3 + 0.25 * velocity_diff)
+        # Model driving as a linear spring and a linear damper
+        force = self.aggression * (displacement + 0.25 * velocity_diff)
         self.position += time_step * self.velocity
         self.velocity += time_step * force
 
@@ -54,14 +54,12 @@ class Traffic:
 
         self.time = 0
         self.cars = []
-        self.positions = -1 * np.arange(self.length) / self.length * 2 * np.pi
+        self.positions = -1 * np.arange(self.length) / self.length * np.pi
         for ii in range(self.length):
             if ii > 0:
                 self.cars.append(Car(aggression=1e1, ahead=self.cars[ii - 1]))
             elif ii == 0:
                 self.cars.append(Car())
-        self.cars[0].ahead = self.cars[-1]
-        self.cars[0].position = self.positions[1] * 0.75
 
     def run(self, run_time, time_step=1e-3):
         """ Run the simulation 
@@ -75,8 +73,11 @@ class Traffic:
             print("Time {} / {}".format(self.time, run_time))
             self.time += 1
             self.positions += time_step * self.average_speed
-            for car in self.cars:
-                car.drive(time=self.time * time_step, time_step=time_step)
+            for ii, car in enumerate(self.cars):
+                if ii == 0:
+                    car.position = -abs(self.positions[1]) / 4. * np.sin(0.5 * 2 * np.pi * self.time / run_time)
+                else:
+                    car.drive(time=self.time * time_step, time_step=time_step)
             self.plot()
 
     def plot(self):
@@ -93,9 +94,10 @@ class Traffic:
             else:
                 plt.scatter(x, y)
 
-        plt.axis('equal')
-        plt.xlim((-1.1 * R, 1.1 * R))
-        plt.ylim((-1.1 * R, 1.1 * R))
+        plt.axis('scaled')
+        lim = (-1.2 * R, 1.2 * R)
+        plt.ylim(lim)
+        plt.xlim(lim)
         plt.savefig('traffic_{:d}.png'.format(self.time))
         plt.close()
 
@@ -103,7 +105,7 @@ class Traffic:
 if __name__ == "__main__":
     for ff in glob.glob('*.png'):
         os.remove(ff)
-    Traffic(length=40, average_speed=1).run(400, time_step=10e-3)
+    Traffic(length=10, average_speed=2).run(100, time_step=5e-3)
 
     ffmpeg = '/usr/local/bin/ffmpeg'
     movie_filename = 'traffic.mp4'
