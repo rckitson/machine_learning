@@ -18,7 +18,9 @@ class Optimizer:
         Args:
             x0: The initial point
             function: The function to optimize
-            method: The optimization method 
+            method: The optimization method, optional
+            error_threshold: The error threshold, optional
+            learning_rate: The learning rate, optional
         """
         self.x0 = x0
         self.function = function
@@ -57,7 +59,7 @@ class Optimizer:
 
         value0 = value
         timeout = False
-        while np.linalg.norm(gradient) > self.error_threshold:
+        while np.linalg.norm(value) > self.error_threshold:
             count += 1
             value, gradient = self.evaluate_function(next_point)
             next_point = self.method(next_point, gradient, count)
@@ -85,11 +87,13 @@ class Optimizer:
             A tuple: (function value, gradient) 
         """
 
-        rand = np.random.random(len(x))
-        delta = 1e-6 * rand / np.linalg.norm(rand)
-
         value = self.function(x)
-        gradient = (self.function(x + delta) - value) / delta
+        gradient = np.zeros_like(x)
+        for ii in range(len(gradient)):
+            delta = np.zeros_like(x)
+            step = 1e-12
+            delta[ii] = step
+            gradient[ii] = (self.function(x + delta) - value) / step
         return value, gradient
 
     def sgd(self, x, gradient, learning_rate):

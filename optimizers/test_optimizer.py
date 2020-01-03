@@ -7,21 +7,29 @@ https://en.wikipedia.org/wiki/Test_functions_for_optimization
 import os
 import glob
 import shutil
+import subprocess
 import numpy as np
 from matplotlib import pyplot as plt
 import optimizer
 
-np.random.seed(0)
-for ff in glob.glob('*.dat'):
-    os.remove(ff)
 
-TOLERANCE = 1e-3
-LEARNING_RATE = 5e-3
-# See the first few methods for available test functions
-# This can be increased to higher dimensions
-X0 = np.random.random(1)
-X0 = X0 / np.linalg.norm(X0)
-print(X0)
+def main():
+    """ The main routine """
+    np.random.seed(0)
+    for ff in glob.glob('*.dat'):
+        os.remove(ff)
+
+    tolerance = 1e-6
+    learning_rate = 1e-4
+    function = circle
+    # See the first few methods for available test functions
+    # x0 can be increased to higher dimensions
+    x0 = np.random.random(3)
+    x0 = x0 / np.linalg.norm(x0)
+
+    test_all(x0, function, learning_rate, tolerance)
+    plot_history()
+    subprocess.call(['open', 'convergence_history.png'])
 
 
 def rosenbrock(x):
@@ -39,10 +47,19 @@ def circle(x):
     return np.sum(x ** 2)
 
 
-def test_all():
+def test_all(x0, function, learning_rate, tolerance):
+    """ Test all the algorithms
+
+    Args:
+        x0: The initial point
+        function: The test function
+        learning_rate: The learning rate
+        tolerance: The tolerance on the gradient
+
+    """
     for algorithm in ['sgd', 'momentum', 'adam', 'rmsprop', 'adagrad', 'adadelta']:
-        opt = optimizer.Optimizer(x0=X0, function=circle, method=algorithm,
-                                  learning_rate=LEARNING_RATE, error_threshold=TOLERANCE)
+        opt = optimizer.Optimizer(x0=x0, function=function, method=algorithm,
+                                  learning_rate=learning_rate, error_threshold=tolerance)
         opt.solve()
         shutil.move('history.dat', algorithm + '.dat')
 
@@ -71,5 +88,4 @@ def plot_history():
 
 
 if __name__ == "__main__":
-    test_all()
-    plot_history()
+    main()
