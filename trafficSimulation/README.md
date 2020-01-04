@@ -15,4 +15,5 @@ or too close to each other. Some tweaking was required on the 'stiffness' and 'd
 to create a useful result.
 
 ![Traffic simulation](traffic_1.png)
+
 [See the video](traffic.mp4)

@@ -105,7 +105,7 @@ class Traffic:
 if __name__ == "__main__":
     for ff in glob.glob('*.png'):
         os.remove(ff)
-    Traffic(length=10, average_speed=2).run(100, time_step=5e-3)
+    Traffic(length=10, average_speed=2).run(500, time_step=5e-3)
 
     ffmpeg = '/usr/local/bin/ffmpeg'
     movie_filename = 'traffic.mp4'
