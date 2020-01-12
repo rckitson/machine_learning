@@ -7,9 +7,9 @@ highlighted is
 
 - machine\_learning/optimizers
 
-![convergence history](./convergence_history.png)
+![convergence history](./optimizers/convergence_history.png)
 
 - machine\_learning/trafficSimulation
 
-![](traffic.gif)
+![Traffic simulation](./trafficSimulation/traffic.gif)
 
