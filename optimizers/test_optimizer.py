@@ -1,9 +1,5 @@
 #!/opt/anaconda3/bin/python3
-""" Tests for the Optimizer class
-
-Test functions taken from Wikipedia:
-https://en.wikipedia.org/wiki/Test_functions_for_optimization
-"""
+""" Tests for the Optimizer class """
 import os
 import glob
 import shutil
@@ -32,19 +28,6 @@ def main():
     subprocess.call(['open', 'convergence_history.png'])
 
 
-def rosenbrock(x):
-    """ Rosenbrock test function """
-    assert len(x) > 1, "Must pass a vector to rosenbrock"
-
-    value = 0
-    for ii in range(len(x) - 1):
-        value += 100 * (x[ii + 1] - x[ii] ** 2) ** 2 + (1 - x[ii]) ** 2
-    return value
-
-
-def circle(x):
-    """ Circle test function """
-    return np.sum(x ** 2)
 
 
 def test_all(x0, function, learning_rate, tolerance):
