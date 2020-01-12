@@ -1,10 +1,12 @@
-""" A module that defines kriging-based multi-fidelity methods """
+""" A module that defines various regression methods """
 
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.initializers import VarianceScaling
+from tensorflow.keras.callbacks import EarlyStopping
 
 
 def gaussian(x, y, alpha=1.0):
@@ -43,7 +45,7 @@ class Regression:
         """ Constructor
 
         Args:
-            scale: Scale the data
+            scale: Flag to scale the data
         """
 
         if scale:
@@ -57,6 +59,11 @@ class RadialBasisFunction(Regression):
     """ Radial Basis Function model """
 
     def __init__(self, scale=True):
+        """ Constructor
+
+        Args:
+            scale: Flag to scale the data
+        """
         super().__init__(scale)
         print('RBF Initialized')
 
@@ -167,7 +174,11 @@ class CoKriging(Regression):
     """ A co-Kriging class for multi-fidelity modeling """
 
     def __init__(self, scale=True):
-        """ Constructor """
+        """ Constructor
+
+        Args:
+            scale: Flag to scale the data
+        """
         super().__init__(scale)
         self._low_fidelity_rbf = Kriging()
         self._delta_rbf = Kriging()
@@ -215,6 +226,11 @@ class DeepReinforcement(Regression):
     """ A class for using a deep neural network to approximate the function """
 
     def __init__(self, scale=True):
+        """Constructor
+
+        Args:
+            scale: Flag to scale the data
+        """
         super().__init__(scale)
         self.model = None
 
@@ -232,32 +248,48 @@ class DeepReinforcement(Regression):
         param = []
         residual = np.zeros(10)
         for ii in range(len(residual)):
-            nodes = 2 ** np.random.randint(4, 5)
-            layers = max(nodes, 2 ** np.random.randint(4, 5))
+            nodes = np.random.randint(2, 10)
+            layers = np.random.randint(2, 10)
             learning_rate = 10 ** np.random.uniform(-4, -2)
             param.append([nodes, layers, learning_rate])
             print('Nodes, layers, learning rate:', param[-1])
 
             history = self.build_model(x, y, nodes, layers, learning_rate=learning_rate)
-            residual = np.min(history.history['loss'])
+            residual = history.history['loss'][-1]
         best_param = param[np.argmin(residual)]
         print('Best param', best_param)
-        self.build_model(x, y, best_param[0], best_param[1], learning_rate=best_param[2], epochs=100)
+        self.build_model(x, y, best_param[0], best_param[1], learning_rate=best_param[2], epochs=1000)
 
     def build_model(self, x, y, nodes, layers, epochs=10, learning_rate=1e-3):
+        """ Build the model
+
+        Args:
+            x: Input data
+            y: Output data
+            nodes: Nodes in each fully-connected layer
+            layers: Number of hidden layers
+            epochs: Number of epochs
+            learning_rate: Learning rate for the Adam optimizer
+
+        Returns:
+            The model training history
+        """
         activation_function = 'relu'
+        initializer = VarianceScaling(scale=1.0, mode='fan_in', distribution='normal', seed=None)
+        callback = EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=0, mode='auto', baseline=None,
+                                 restore_best_weights=True)
 
         self.model = Sequential()
         self.model.add(
             Dense(units=nodes, activation=activation_function, input_shape=(x.shape[1],),
-                  kernel_initializer='lecun_normal'))
+                  kernel_initializer=initializer))
         for ii in range(layers - 1):
-            self.model.add(Dense(units=nodes, activation=activation_function, kernel_initializer='lecun_normal'))
-        self.model.add(Dense(units=1, kernel_initializer='lecun_normal'))
+            self.model.add(Dense(units=nodes, activation=activation_function, kernel_initializer=initializer))
+        self.model.add(Dense(units=1, kernel_initializer=initializer))
         self.model.compile(loss='mean_squared_error', optimizer=Adam(learning_rate=learning_rate))
 
         history = self.model.fit(x, y, validation_split=0.1, epochs=epochs,
-                                 batch_size=3)
+                                 batch_size=3, callbacks=[callback])
         return history
 
     def predict(self, x):

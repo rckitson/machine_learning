@@ -177,12 +177,12 @@ def rad(x):
 
 def test_deep_reinforcement():
     hf_function = test_functions.rastrigin
-    x_range = (-1., 1.)
+    x_range = (-5.12, 5.12)
     n_dim = 1
 
     model = regression.DeepReinforcement()
 
-    n_points = 2 ** np.arange(3, 6)
+    n_points = 2 ** np.arange(6, 12)
     error = np.zeros((len(n_points), 2))
     for ii in range(len(error) - 1, len(error)):
         x_hf = np.random.uniform(x_range[0], x_range[1], size=(n_points[ii], n_dim))
