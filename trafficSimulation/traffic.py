@@ -108,8 +108,9 @@ if __name__ == "__main__":
     Traffic(length=10, average_speed=2).run(500, time_step=5e-3)
 
     ffmpeg = '/usr/local/bin/ffmpeg'
-    movie_filename = 'traffic.gif'
+    movie_filename = 'traffic.mp4'
     cmd = '-f image2 -i traffic_%d.png {}'.format(movie_filename).split(' ')
+
     if os.path.exists(movie_filename):
         os.remove(movie_filename)
     subprocess.call([ffmpeg] + cmd)
